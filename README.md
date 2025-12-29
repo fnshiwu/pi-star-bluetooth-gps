@@ -13,7 +13,7 @@ This project integrates Bluetooth GPS (Nokia LD-3W) with Pi-Star for real-time A
 ### 🚀 Quick Install
 ```bash
 rpi-rw
-wget [https://raw.githubusercontent.com/fnshiwu/pi-star-bluetooth-gps/main/install.sh](https://raw.githubusercontent.com/fnshiwu/pi-star-bluetooth-gps/main/install.sh)
+wget https://raw.githubusercontent.com/fnshiwu/pi-star-bluetooth-gps/main/install.sh
 chmod +x install.sh && sudo ./install.sh
 
 ⚙️ Pi-Star Configuration
@@ -34,7 +34,7 @@ Expert -> MMDVMHost -> [Mobile GPS]: Enable=1, Address=127.0.0.1, Port=7834.
 📦 安装方法
 
 rpi-rw
-wget [https://raw.githubusercontent.com/fnshiwu/pi-star-bluetooth-gps/main/install.sh](https://raw.githubusercontent.com/fnshiwu/pi-star-bluetooth-gps/main/install.sh)
+wget https://raw.githubusercontent.com/fnshiwu/pi-star-bluetooth-gps/main/install.sh
 chmod +x install.sh && sudo ./install.sh
 
 🛠️ 首次配对
