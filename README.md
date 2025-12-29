@@ -41,7 +41,8 @@ Check raw data: cat /dev/rfcomm0
 
 Check GPS fix: cgps -s
 
-中文教程
+## 中文教程
+
 本项目专为 Pi-Star 平台设计，用于解决 Nokia LD-3W 等蓝牙 GPS 模块在热点板上的三大痛点：
 
 系统不原生支持：通过 gpsd 自动桥接蓝牙数据。
