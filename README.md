@@ -1,68 +1,61 @@
-Pi-Star 蓝牙 GPS (Nokia LD-3W) 自动集成与断线重连教程
-本项目专门解决 Pi-Star 系统连接蓝牙 GPS 模块时遇到的三大问题：
+# Pi-Star 蓝牙 GPS 自动集成工具 (Nokia LD-3W)
 
-系统不原生支持：通过 gpsd 桥接蓝牙数据。
-重启失效：通过启动脚本自动绑定。
-断线不重连：通过守护脚本（Watchdog）实现分钟级自动重连。
+本项目专为 Pi-Star 平台设计，用于解决 **Nokia LD-3W** 等蓝牙 GPS 模块在热点板上的三大痛点：
+1. **系统不原生支持**：通过 `gpsd` 自动桥接蓝牙数据。
+2. **重启失效**：开机自动执行设备绑定。
+3. **断线不重连**：内置监控守护脚本，实现分钟级断线重连。
 
-🛠️ 一键安装步骤
-为了方便使用，建议直接运行自动化安装脚本。
+---
 
-1. 下载并运行安装脚本
-在 Pi-Star 终端输入：
+## 🚀 快速安装 (Quick Start)
+
+请确保你的 Pi-Star 已经联网。在终端中依次执行以下三行命令：
+
+```bash
 rpi-rw
-wget https://raw.githubusercontent.com/fnshiwu/pi-star-bluetooth-gps/main/install.sh
-sudo bash install.sh
+wget [https://raw.githubusercontent.com/fnshiwu/pi-star-bluetooth-gps/main/install.sh](https://raw.githubusercontent.com/fnshiwu/pi-star-bluetooth-gps/main/install.sh)
+chmod +x install.sh && sudo ./install.sh
+🛠️ 首次使用指南
+1. 蓝牙配对 (仅需一次)
+脚本运行完毕后，你需要手动授权蓝牙连接。请执行以下命令：
 
-3. 手动完成首次配对 (仅需一次)
-脚本运行完成后，你需要手动授权蓝牙连接：
+Bash
+
 sudo bluetoothctl
-进入蓝牙控制台后执行：
+进入蓝牙控制台后，依次输入：
+
 power on
+
 scan on
-确认找到 LD-3W 地址 (例如 00:02:xx:xx:xx:xx)
-pair 00:02:xx:xx:xx:xx
-trust 00:02:xx:xx:xx:xx
+
+(找到 LD-3W 地址后，假设为 00:02:76:C5:36:A0)
+
+pair 00:02:76:C5:36:A0 (提示 PIN 请输入 0000)
+
+trust 00:02:76:C5:36:A0
+
 exit
 
-📝 核心原理说明
-如果你想手动配置或了解原理，请参考以下逻辑：
+2. 验证数据
+配对完成后，等待约 1 分钟，守护脚本会自动建立链路。你可以通过以下命令检查数据：
 
-1. 自动重连守护脚本 (gps_watchdog.sh)
-由于 rfcomm bind 只是逻辑绑定，一旦蓝牙模块关机或超出距离，连接就会中断。我们通过 Cron 每分钟执行一次以下脚本：
-检查设备节点是否存在，不存在则绑定
-if [ ! -e /dev/rfcomm0 ]; then
-    rfcomm bind 0 00:02:xx:xx:xx:xx
-    sleep 2
-fi
- 检查物理链路是否通畅
-if ! hcitool con | grep -q "00:02:xx:xx:xx:xx"; then
-    echo "GPS link down, reconnecting..."
-    rfcomm connect 0 00:02:xx:xx:xx:xx &
-    sleep 5
-    systemctl restart gpsd
-fi
+检查原始数据流：cat /dev/rfcomm0 (应看到 $GPRMC 报文滚动)
 
-2. 桥接服务配置 (/etc/default/gpsd)
-为了防止 gpsd 干扰 MMDVM 的串口，必须禁用自动扫描：
-DEVICES="/dev/rfcomm0"
-GPSD_OPTIONS="-n -G"
-USBAUTO="false"
+查看解析坐标：cgps -s (应看到 Latitude/Longitude 坐标信息)
 
-📊 如何验证
-验证连接状态
-查看设备节点：ls -l /dev/rfcomm0
-查看原始 NMEA 数据：cat /dev/rfcomm0（应看到 $GPRMC 等数据流）
-查看坐标解析：cgps -s（应看到经纬度数值）
-验证自动重连
-运行 cgps 观察数据。
-手动关闭 Nokia LD-3W 电源，数据将停止。
-重新开启 LD-3W 电源。
-无需操作，等待 1 分钟左右，守护脚本会自动恢复连接，cgps 重新显示数据。
+📡 核心功能
+自动重连 (Watchdog)：系统每分钟会检查一次蓝牙物理链路。如果 GPS 模块因为距离过远或临时关机导致断开，系统会在模块重新开启后 60 秒内自动恢复连接。
+
+硬件保护：自动配置 gpsd，禁用 USB 自动扫描，防止干扰 MMDVM 热点板所使用的 /dev/ttyAMA0 串口。
+
+卫星授时：即使在没有网络的环境下，系统也能通过蓝牙 GPS 模块获取精确的卫星时间。
+
 ⚠️ 注意事项
-电源供应：蓝牙通信和 DMR 编解码对电压敏感，请务必使用 5V 3A 电源。
-搜星环境：Nokia LD-3W 必须在窗边或户外才能完成定位（蓝灯/绿灯状态）。
-静态坐标：由于部分 Pi-Star 内置的 MMDVMHost 未编译 GPS 插件，建议通过 cgps 获取坐标后手动填入 Pi-Star 的 Configuration 页面以实现 APRS 固定站坐标展示。
+MAC 地址修改：若你的 GPS 模块地址不是 00:02:76:C5:36:A0，请修改 install.sh 中的 GPS_MAC 变量。
 
-🔗 开源协议
-本项目采用 MIT 协议。 BA4SMQ 整理发布。
+APRS 设置：由于 MMDVMHost 版本限制，建议通过 cgps 获取坐标后，手动填入 Pi-Star 的 Configuration 页面，以确保 APRS.fi 地图显示准确。
+
+电源建议：开启蓝牙和 DMR 模式后功耗增加，建议使用至少 5V 3A 的优质电源。
+
+📜 开源协议
+MIT License - BA4SMQ 整理发布
