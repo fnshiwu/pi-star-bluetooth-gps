@@ -14,13 +14,13 @@ rpi-rw
 wget https://raw.githubusercontent.com/fnshiwu/pi-star-bluetooth-gps/main/install.sh
 sudo bash install.sh
 
-2. 手动完成首次配对 (仅需一次)
+3. 手动完成首次配对 (仅需一次)
 脚本运行完成后，你需要手动授权蓝牙连接：
 sudo bluetoothctl
-# 进入蓝牙控制台后执行：
+进入蓝牙控制台后执行：
 power on
 scan on
-# 确认找到 LD-3W 地址 (例如 00:02:xx:xx:xx:xx)
+确认找到 LD-3W 地址 (例如 00:02:xx:xx:xx:xx)
 pair 00:02:xx:xx:xx:xx
 trust 00:02:xx:xx:xx:xx
 exit
@@ -30,13 +30,12 @@ exit
 
 1. 自动重连守护脚本 (gps_watchdog.sh)
 由于 rfcomm bind 只是逻辑绑定，一旦蓝牙模块关机或超出距离，连接就会中断。我们通过 Cron 每分钟执行一次以下脚本：
-#!/bin/bash
-# 检查设备节点是否存在，不存在则绑定
+检查设备节点是否存在，不存在则绑定
 if [ ! -e /dev/rfcomm0 ]; then
     rfcomm bind 0 00:02:xx:xx:xx:xx
     sleep 2
 fi
-# 检查物理链路是否通畅
+ 检查物理链路是否通畅
 if ! hcitool con | grep -q "00:02:xx:xx:xx:xx"; then
     echo "GPS link down, reconnecting..."
     rfcomm connect 0 00:02:xx:xx:xx:xx &
