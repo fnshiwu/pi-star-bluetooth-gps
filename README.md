@@ -26,12 +26,17 @@ sudo bash install.sh
 Bash
 
 sudo bluetoothctl
+
 # 进入蓝牙控制台后执行：
 power on
+
 scan on
+
 # 确认找到 LD-3W 地址 (例如 00:02:xx:xx:xx:xx)
 pair 00:02:xx:xx:xx:xx
+
 trust 00:02:xx:xx:xx:xx
+
 exit
 
 📝 核心原理说明
@@ -48,7 +53,6 @@ if [ ! -e /dev/rfcomm0 ]; then
     rfcomm bind 0 00:02:xx:xx:xx:xx
     sleep 2
 fi
-
 # 检查物理链路是否通畅
 if ! hcitool con | grep -q "00:02:xx:xx:xx:xx"; then
     echo "GPS link down, reconnecting..."
