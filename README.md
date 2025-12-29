@@ -1,9 +1,11 @@
 # Pi-Star Bluetooth GPS Integration Guide (Nokia LD-3W)
 # Pi-Star 蓝牙 GPS 自动集成工具 (Nokia LD-3W)
 
-[English Guide](#english-guide) | [中文说明](#中文教程)
+[English Guide](#english-guide) | [中文说明](#chinese-guide)
 
 ---
+
+<div id="english-guide"></div>
 
 ## English Guide
 
@@ -41,8 +43,9 @@ Check raw data: cat /dev/rfcomm0
 
 Check GPS fix: cgps -s
 
-## 中文教程
+<div id="chinese-guide"></div>
 
+中文教程
 本项目专为 Pi-Star 平台设计，用于解决 Nokia LD-3W 等蓝牙 GPS 模块在热点板上的三大痛点：
 
 系统不原生支持：通过 gpsd 自动桥接蓝牙数据。
@@ -81,24 +84,14 @@ exit
 查看解析坐标：cgps -s (应看到经纬度数值)
 
 📡 Features / 核心功能
-Auto-Reconnect (Watchdog): System checks the Bluetooth link every minute. If the GPS is turned off or out of range, it will reconnect automatically within 60 seconds of being back online.
+Auto-Reconnect (Watchdog): System checks the Bluetooth link every minute. If the GPS is turned off or out of range, it will reconnect automatically within 60 seconds.
 
-Hardware Protection: Automatically configures gpsd to disable USB auto-scanning, preventing interference with the MMDVM modem on /dev/ttyAMA0.
+Hardware Protection: Automatically configures gpsd to disable USB auto-scanning.
 
-Satellite Timing: Synchronizes Pi-Star system time via GPS even without an internet connection.
+Satellite Timing: Synchronizes Pi-Star system time via GPS.
 
 自动重连 (Watchdog)：系统每分钟检查一次链路。如果 GPS 掉线，系统会在其恢复后 60 秒内自动重连。
 
 硬件保护：自动配置 gpsd 并禁用 USB 自动扫描，防止干扰热点板串口。
 
 卫星授时：即使在无网环境下，系统也能通过 GPS 获取精确时间。
-
-⚠️ Notes / 注意事项
-MAC Address: If your MAC is not 00:02:76:C5:36:A0, edit GPS_MAC in install.sh.
-
-APRS Setting: Due to MMDVMHost limitations, manual entry of coordinates in the Pi-Star Config page is recommended after obtaining them via cgps.
-
-MAC 地址修改：若你的 MAC 地址不同，请修改 install.sh 中的 GPS_MAC 变量。
-
-📜 License
-MIT License - BA4SMQ ```
