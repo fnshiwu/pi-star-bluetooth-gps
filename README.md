@@ -16,6 +16,7 @@ Pi-Star 蓝牙 GPS (Nokia LD-3W) 自动集成与断线重连教程
 Bash
 
 rpi-rw
+
 wget https://raw.githubusercontent.com/fnshiwu/pi-star-bluetooth-gps/main/install.sh
 
 sudo bash install.sh
