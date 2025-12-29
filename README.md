@@ -1,14 +1,11 @@
-Markdown
-
 # Pi-Star Bluetooth GPS Integration Guide (Nokia LD-3W)
 # Pi-Star 蓝牙 GPS 自动集成工具 (Nokia LD-3W)
 
-[English](#english-guide) | [中文说明](#中文教程)
+[English Guide](#english-guide) | [中文说明](#中文教程)
 
 ---
 
-<a name="english-guide"></a>
-## 🇬🇧 English Guide
+## English Guide
 
 This project is designed for Pi-Star platforms to solve the pain points of using Bluetooth GPS modules (like Nokia LD-3W):
 1. **No Native Support**: Bridging Bluetooth data via `gpsd`.
@@ -33,6 +30,7 @@ sudo bluetoothctl
 # Inside the prompt:
 power on
 scan on
+# Find your LD-3W MAC (e.g., 00:02:76:C5:36:A0)
 pair 00:02:76:C5:36:A0
 trust 00:02:76:C5:36:A0
 exit
@@ -43,9 +41,7 @@ Check raw data: cat /dev/rfcomm0
 
 Check GPS fix: cgps -s
 
-<a name="中文教程"></a>
-
-🇨🇳 中文教程
+中文教程
 本项目专为 Pi-Star 平台设计，用于解决 Nokia LD-3W 等蓝牙 GPS 模块在热点板上的三大痛点：
 
 系统不原生支持：通过 gpsd 自动桥接蓝牙数据。
@@ -77,7 +73,7 @@ pair 00:02:76:C5:36:A0
 trust 00:02:76:C5:36:A0
 exit
 2. 验证数据
-配对完成后，等待约 1 分钟，守护脚本会自动建立链路。
+配对完成后，等待约 1 分钟，守护脚本（Watchdog）会自动建立链路。
 
 检查原始数据流：cat /dev/rfcomm0 (应看到 $GPRMC 报文滚动)
 
@@ -95,3 +91,13 @@ Satellite Timing: Synchronizes Pi-Star system time via GPS even without an inter
 硬件保护：自动配置 gpsd 并禁用 USB 自动扫描，防止干扰热点板串口。
 
 卫星授时：即使在无网环境下，系统也能通过 GPS 获取精确时间。
+
+⚠️ Notes / 注意事项
+MAC Address: If your MAC is not 00:02:76:C5:36:A0, edit GPS_MAC in install.sh.
+
+APRS Setting: Due to MMDVMHost limitations, manual entry of coordinates in the Pi-Star Config page is recommended after obtaining them via cgps.
+
+MAC 地址修改：若你的 MAC 地址不同，请修改 install.sh 中的 GPS_MAC 变量。
+
+📜 License
+MIT License - BA4SMQ ```
