@@ -16,9 +16,10 @@ Pi-Star 蓝牙 GPS (Nokia LD-3W) 自动集成与断线重连教程
 Bash
 
 rpi-rw
-wget https://raw.githubusercontent.com/fnshiwu/pi-star-bluetooth-gps
-/main/install.sh
+wget https://raw.githubusercontent.com/fnshiwu/pi-star-bluetooth-gps/main/install.sh
+
 sudo bash install.sh
+
 2. 手动完成首次配对 (仅需一次)
 脚本运行完成后，你需要手动授权蓝牙连接：
 
@@ -32,6 +33,7 @@ scan on
 pair 00:02:xx:xx:xx:xx
 trust 00:02:xx:xx:xx:xx
 exit
+
 📝 核心原理说明
 如果你想手动配置或了解原理，请参考以下逻辑：
 
@@ -54,6 +56,7 @@ if ! hcitool con | grep -q "00:02:xx:xx:xx:xx"; then
     sleep 5
     systemctl restart gpsd
 fi
+
 2. 桥接服务配置 (/etc/default/gpsd)
 为了防止 gpsd 干扰 MMDVM 的串口，必须禁用自动扫描：
 
