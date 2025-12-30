@@ -26,7 +26,7 @@ EOF
 echo "Creating watchdog script..."
 sudo cat << 'EOF' > /usr/local/bin/gps_watchdog.sh
 #!/bin/bash
-GPS_MAC="00:02:76:C5:36:A0"
+GPS_MAC="00:02:XX:XX:XX:XX"
 
 # Step 1: Check Bluetooth Binding
 if [ ! -e /dev/rfcomm0 ]; then
