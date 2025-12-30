@@ -1,58 +1,131 @@
-# Pi-Star Bluetooth GPS & APRS Integration Guide
-# Pi-Star 蓝牙 GPS 与 APRS 集成指南
+# Pi-Star Bluetooth GPS & APRS Integration
+# Pi-Star 蓝牙 GPS 与 APRS 集成方案
 
-### 📝 Project Overview / 项目概述
-This project enables **Nokia LD-3W** Bluetooth GPS modules to work with Pi-Star for real-time APRS location reporting.  
-本项目使 **Nokia LD-3W** 蓝牙 GPS 模块能够与 Pi-Star 配合使用，实现实时 APRS 位置上报。
+[English Guide](#english-guide) | [中文说明](#chinese-guide)
 
 ---
 
-### 🚀 Quick Installation / 快速安装
+<a name="english-guide"></a>
+## 🇬🇧 English Guide
 
-**1. Switch Pi-Star to Read-Write mode:** **1. 将 Pi-Star 切换至读写模式：**
+This project enables **Nokia LD-3W** Bluetooth GPS modules to provide real-time location data for Pi-Star hotspots via APRS.
+
+### 🚀 Quick Installation
+1. **Switch Pi-Star to Read-Write mode:**
+   ```bash
+   rpi-rw
+
+```
+
+2. **Download and run the script:**
 ```bash
-rpi-rw
-2. Download and run the install script: 2. 下载并运行安装脚本：
-
 wget https://raw.githubusercontent.com/fnshiwu/pi-star-bluetooth-gps/main/install.sh
 chmod +x install.sh && sudo ./install.sh
-🛠️ Manual Bluetooth Pairing / 手动蓝牙配对
-After installation, you must pair your device once: 安装完成后，您必须进行一次手动配对（仅限首次）：
 
+```
+
+
+
+### 🛠️ Manual Pairing (First time only)
+
+```bash
 sudo bluetoothctl
-# Inside the prompt, type these commands:
-# 在提示符下，输入以下命令：
-power on
-scan on
-# Find your MAC (e.g., 00:02:76:C5:36:A0) and pair:
-# 找到您的 MAC 地址并配对：
-pair 00:02:76:C5:36:A0
-trust 00:02:76:C5:36:A0
-exit
-⚙️ Pi-Star Configuration / Pi-Star 配置步骤
-1. Open Pi-Star Web Dashboard and go to "Expert" -> "MMDVMHost". 1. 打开 Pi-Star 控制面板，进入“Expert” -> “MMDVMHost”。
+# Commands: power on -> scan on -> pair [MAC] -> trust [MAC] -> exit
 
-2. Configure [Mobile GPS] section: 2. 配置 [Mobile GPS] 部分：
+```
 
-Enable: 1
+### ⚙️ Pi-Star Expert Settings
 
-Address: 127.0.0.1
+* **MMDVMHost -> [Mobile GPS]**: Enable=1, Address=127.0.0.1, Port=7834
+* **MMDVMHost -> [APRS]**: Enable=1, Callsign=YourCall-9
 
-Port: 7834
+---
 
-3. Configure [APRS] section: 3. 配置 [APRS] 部分：
+<a name="chinese-guide"></a>
 
-Enable: 1
+## 🇨🇳 中文说明
 
-Callsign: YourCallsign-9 (e.g., BA4SMQ-9)
+本项目支持将 **Nokia LD-3W** 蓝牙 GPS 模块集成到 Pi-Star，实现实时 APRS 位置上报。
 
-Interval: 60
+### 🚀 快速安装
 
-4. Click "Apply Changes". 4. 点击“应用设置”。
+1. **切换至读写模式：**
+```bash
+rpi-rw
 
-📡 Verification & Debugging / 验证与调试
-Check if coordinates are received: 检查是否收到坐标：
-cgps -s
+```
 
-Monitor the data stream (Look for hex data): 监听数据流（观察是否有十六进制数据跳动）：
-sudo tcpdump -i lo udp port 7834 -X
+
+2. **执行安装脚本：**
+```bash
+wget https://raw.githubusercontent.com/fnshiwu/pi-star-bluetooth-gps/main/install.sh
+chmod +x install.sh && sudo ./install.sh
+
+```
+
+
+
+### 🛠️ 手动配对（仅限首次）
+
+```bash
+sudo bluetoothctl
+# 依次输入: power on -> scan on -> pair [MAC地址] -> trust [MAC地址] -> exit
+
+```
+
+### ⚙️ Pi-Star 专家设置
+
+* **MMDVMHost -> [Mobile GPS]**: Enable=1, Address=127.0.0.1, Port=7834
+* **MMDVMHost -> [APRS]**: Enable=1, 设置呼号-9
+
+### 📡 调试与验证
+
+* **查看坐标**: `cgps -s`
+* **监听数据流**: `sudo tcpdump -i lo udp port 7834 -X`
+
+---
+
+**Author / 作者**: BA4SMQ | **License / 授权**: MIT
+
+```
+
+---
+
+### 2. 自动化脚本：`install.sh` (保持逻辑一致)
+
+确保 `install.sh` 包含以下核心逻辑，特别是最后的 `socat` 转发部分：
+
+```bash
+#!/bin/bash
+# Pi-Star Bluetooth GPS Auto-Installer by BA4SMQ
+rpi-rw
+sudo apt-get update
+sudo apt-get install bluetooth bluez gpsd gpsd-clients socat tcpdump -y
+
+# 写入守护脚本
+sudo cat << 'EOF' > /usr/local/bin/gps_watchdog.sh
+#!/bin/bash
+GPS_MAC="00:02:76:C5:36:A0"
+if [ ! -e /dev/rfcomm0 ]; then
+    rfcomm bind 0 $GPS_MAC
+    sleep 2
+fi
+if ! hcitool con | grep -q "$GPS_MAC"; then
+    rfcomm connect 0 $GPS_MAC &
+    sleep 5
+    systemctl restart gpsd
+fi
+if ! pgrep -f "socat - UDP-DATAGRAM:127.0.0.1:7834" > /dev/null; then
+    (gpspipe -r | socat - UDP-DATAGRAM:127.0.0.1:7834) &
+fi
+EOF
+
+sudo chmod +x /usr/local/bin/gps_watchdog.sh
+(crontab -l 2>/dev/null | grep -v "gps_watchdog.sh"; echo "* * * * * /usr/local/bin/gps_watchdog.sh > /dev/null 2>&1") | crontab -
+echo "Installation Finished!"
+rpi-ro
+
+```
+
+---
+
